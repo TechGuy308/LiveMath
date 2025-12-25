@@ -1,0 +1,6 @@
+streamlit
+Pillow
+sympy
+google-genai
+pix2tex
+numpy
