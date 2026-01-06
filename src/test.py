@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from PIL import Image
+import src.vision
 
 st.set_page_config(layout="wide")
 st.title("Live Math")
