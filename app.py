@@ -29,9 +29,11 @@ if st.button("display image"):
             pil_work_img = Image.open(work)
             st.session_state["work_img"] = src.vision.processImage(pil_work_img)
             st.image(st.session_state["work_img"], 300)
+            
 
         with question_col:
-            st.session_state["quest_img"] = Image.open(problem)
+            pil_quest_img = Image.open(problem)
+            st.session_state["quest_img"] = src.vision.processImage(pil_quest_img)
             st.image(st.session_state["quest_img"], 300)
             
     else:
