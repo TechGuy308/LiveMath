@@ -2,45 +2,55 @@ import os
 import streamlit as st
 from PIL import Image
 import src.vision
+from streamlit_drawable_canvas import st_canvas
+import src.logic
 
 st.set_page_config(layout="wide")
 st.title("Live Math")
+backgroundColor="#6E6D84"
+upload_problem_col, canvas_col = st.columns([1,1])
 
-#upload your own work and math problem
-question_col ,work_col = st.columns(2) 
+if "detected_latex" not in st.session_state:
+    st.session_state.detected_latex = None
 
-with work_col:
-    work = st.file_uploader("upload image of your work", key="work", type=['jpg', 'png', 'jpeg'])
+if "canvas_work" not in st.session_state:
+    st.session_state.canvas_work = None
 
-with question_col:
-    problem = st.file_uploader("upload image of question", key="problem" ,type=['jpg', 'png', 'jpeg'])
-
-#initilize session state
-if "work_img" not in st.session_state:
-    st.session_state["work_img"] = None
-if "quest_img" not in st.session_state:
-    st.session_state["quest_img"] = None
-
-#display image
-if st.button("display image"):
-    #check to see that work and problem images have been uploaded
-    if work and problem is not None:
-        with work_col:  
-            pil_work_img = Image.open(work)
-            st.session_state["work_img"] = src.vision.processImage(pil_work_img)
-            st.image(st.session_state["work_img"], 300)
-            
-
-        with question_col:
+#upload your math question
+with st.sidebar:
+    st.header("Settings")
+    problem = st.file_uploader("Upload Problem Image", type=['png', 'jpg', 'jpeg'])
+    if st.button("process image"):
+        if problem is not None:
             pil_quest_img = Image.open(problem)
-            st.session_state["quest_img"] = src.vision.processImage(pil_quest_img)
-            st.image(st.session_state["quest_img"], 300)
             
-    else:
-        #message for if images have not been uploaded
-        st.write("Please upload image first:")
+            # 1. Get the LaTeX string from your vision script
+            detected_text = src.vision.processImage(pil_quest_img)
+            #detected_text = r"\int\! x \, d_{X}"
+            # 2. Save it to session state
+            st.session_state["detected_latex"] = detected_text
+            converted_latex = src.logic.solve_prob(detected_text)
+            
+                    
+        else:
+            #message for if images have not been uploaded
+            st.write("Please upload image first:")
+
+with canvas_col:
+    init_canvas =st_canvas(
+    "#090909",5, "#090909","#FDFCFC", height=170,width=400, drawing_mode="freedraw", key="canvas")
+    if st.button("check work"):
+         #detected_text = src.vision.processImage(init_canvas)
+        canvas_text = r"\int\! x \, d_{X}"
+        # 2. Save it to session state
+        st.session_state["canvas_work"] = canvas_text
+        
 
 
-if st.button("clear chat"):
-    st.session_state["work_img"] = None
-    st.session_state["quest_img"] = None
+
+#display latex
+if st.session_state["detected_latex"]:
+    with upload_problem_col:
+        st.write("---") # Visual separator
+        st.write("### 🎯 Solve this problem:")
+        st.latex(st.session_state["detected_latex"])
