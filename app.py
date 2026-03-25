@@ -28,9 +28,11 @@ with st.sidebar:
             detected_text = src.vision.processImage(pil_quest_img)
             #detected_text = r"\int\! x \, d_{X}"
             # 2. Save it to session state
+            with upload_problem_col:
+                st.spinner("Ollama is thinking... (This takes a moment)")
             st.session_state["detected_latex"] = detected_text
             converted_latex = src.logic.solve_prob(detected_text)
-            
+            ollama_json = src.logic.get_steps(converted_latex[0], converted_latex[1])
                     
         else:
             #message for if images have not been uploaded

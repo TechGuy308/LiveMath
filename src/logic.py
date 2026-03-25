@@ -29,7 +29,7 @@ def solve_prob(detected_latex):
         # fall back to a simple text comparison for now
         print(f"Parser Error: {e}")
 
-ques,sol = solve_prob()
+
 def get_steps(latex, answer):
     url = "http://localhost:11434/api/generate"
     
@@ -49,4 +49,3 @@ def get_steps(latex, answer):
     result = response.json()
     print (json.loads(result['response']))
 
-get_steps(ques, sol)
