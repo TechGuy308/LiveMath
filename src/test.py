@@ -1,18 +1,28 @@
-import os
-import streamlit as st
-from PIL import Image
-import src.vision
+from langchain_ollama import OllamaLLM
+from langchain_core.prompts import ChatPromptTemplate
 
-st.set_page_config(layout="wide")
-st.title("Live Math")
+model = OllamaLLM(model="phi3")
+template= """
+Answer the question below
 
-counter = 0
+Here is the chat history: {context}
+Question:{question}
 
-if "counter" not in st.session_state:
-    st.session_state["counter"] = 0
+Answer:
+"""
+prompt = ChatPromptTemplate.from_template(template)
+chain = prompt|model
 
-if st.button("counter"):
-    
-    st.session_state["counter"] += 1
 
-st.write(st.session_state["counter"])
+def chat_history():
+    context = ""
+    print("Hello")
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == "exit":
+            break
+
+        result = chain.invoke({"context":"","question":input("enter prompt:")})
+        print("Bot: ", result)
+        context += f"\nUser: {user_input}\nAi: {result}"
+

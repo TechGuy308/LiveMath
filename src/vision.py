@@ -29,7 +29,7 @@ def processImage(streamlit_img):
             #reads image and converts forumla to latex
             import pix2text
             p2t = pix2text.Pix2Text.from_config()
-            output = p2t.recognize(resized_pil, file_type='formula')
+            output = p2t.recognize(resized_pil, file_type="text")
 
             #writes latex output to file and then returns output so it can be displayed in app.py 
             with open(file_path, 'w', encoding='utf-8') as file:

@@ -10,8 +10,8 @@ st.title("Live Math")
 backgroundColor="#6E6D84"
 upload_problem_col, canvas_col = st.columns([1,1])
 
-if "detected_latex" not in st.session_state:
-    st.session_state.detected_latex = None
+if "quest_text" not in st.session_state:
+    st.session_state.quest_text = None
 
 if "canvas_work" not in st.session_state:
     st.session_state.canvas_work = None
@@ -28,11 +28,10 @@ with st.sidebar:
             detected_text = src.vision.processImage(pil_quest_img)
             #detected_text = r"\int\! x \, d_{X}"
             # 2. Save it to session state
-            with upload_problem_col:
-                st.spinner("Ollama is thinking... (This takes a moment)")
-            st.session_state["detected_latex"] = detected_text
-            converted_latex = src.logic.solve_prob(detected_text)
-            ollama_json = src.logic.get_steps(converted_latex[0], converted_latex[1])
+            
+            st.session_state["quest_text"] = detected_text
+            
+                
                     
         else:
             #message for if images have not been uploaded
@@ -41,18 +40,21 @@ with st.sidebar:
 with canvas_col:
     init_canvas =st_canvas(
     "#090909",5, "#090909","#FDFCFC", height=170,width=400, drawing_mode="freedraw", key="canvas")
-    if st.button("check work"):
+    user_text_input = st.text_area("Enter your reasoning or questions")
+    if st.button("submit"):
          #detected_text = src.vision.processImage(init_canvas)
         canvas_text = r"\int\! x \, d_{X}"
         # 2. Save it to session state
         st.session_state["canvas_work"] = canvas_text
+    
         
 
 
 
 #display latex
-if st.session_state["detected_latex"]:
+if st.session_state["quest_text"]:
     with upload_problem_col:
-        st.write("---") # Visual separator
-        st.write("### 🎯 Solve this problem:")
-        st.latex(st.session_state["detected_latex"])
+        pass
+        #st.write("---") # Visual separator
+        #st.write("### 🎯 Solve this problem:")
+        #st.write(st.session_state["detected_latex"])
