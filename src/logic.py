@@ -12,21 +12,39 @@ from langchain_core.messages import HumanMessage, AIMessage
 class MathTutorEngine():
     # Logic Engine for APP
 
-    def __init__(self, model ="phi3:mini"):
+    def __init__(self, model ="llama3.2:1b"):
         self.llm = OllamaLLM(model=model)
         self.memory = ChatMessageHistory()
         self.convo_hist = ""
 
     def get_opening_question(self, problem):
         
-        prompt = f"""Problem: {problem}
+        prompt = f"""
 
-    Ask one guiding question to help a student solve this.
-    Remember this is Stage 1, so it should be a very simple, short question.
-    Make it ask them to identify/extract/recognize something fundamental.
-    Examples: "What are the known values?", "What are we solving for?"
+    You are an expert physics tutor using the Socratic method.
 
-    Question:"""
+        The student has just been given this problem:
+        {problem}
+
+        Your goal:
+        Ask the BEST first question to help the student start thinking.
+
+        Guidelines:
+        - Ask only ONE question
+        - Do NOT solve the problem
+        - Do NOT list steps
+        - Do NOT be generic unless appropriate
+        - Focus on helping the student identify how to begin
+
+        Good starting directions:
+        - identifying known values
+        - identifying what is being solved
+        - identifying the type of problem (motion, forces, etc.)
+        - identifying relevant relationships
+
+        
+        
+        Return ONLY: Question:"""
         return self.llm.invoke(prompt)
     
     def validate_answer(self, problem, question, user_answer):
@@ -36,9 +54,11 @@ class MathTutorEngine():
         Student answer: {user_answer}
 
         Is this answer correct for answering the question?
-        Respond ONLY with: CORRECT / INCOMPLETE / WRONG"""
+        Respond ONLY with: CORRECT  / WRONG"""
         
         result = self.llm.invoke(prompt)
+        print(prompt)
+        print(result)
         return "CORRECT" in result
     
     #Get Next Question If USer was Correct
@@ -49,10 +69,12 @@ class MathTutorEngine():
         for msg in self.memory.messages:
             role = "Student" if isinstance(msg, HumanMessage) else "Tutor"
             self.convo_hist += f"{role}: {msg.content}\n"
+        
+    
         prompt = f"""Problem: {problem}
 
         Conversation history so far:
-        {self.convo_hist}
+        {self.memory.messages}
 
         Based on what the student has answered so far, generate the NEXT guiding question.
         Make it build on what they've established.
@@ -78,7 +100,15 @@ class MathTutorEngine():
         """Save Q&A to conversation history"""
         self.memory.add_ai_message(question)
         self.memory.add_user_message(answer)
-    
+        for msg in self.memory.messages:
+            role = "Student" if isinstance(msg, HumanMessage) else "Tutor"
+            self.convo_hist += f"{role}: {msg.content}\n"
+        file_path = 'my_new_file.txt'
+        with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(str(self.convo_hist))
+                print(f"File '{file_path}' created and written successfully.")
+        
+       
     def reset(self):
         """Clear conversation for new problem"""
         self.memory.clear()

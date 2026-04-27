@@ -22,8 +22,7 @@ def processImage(streamlit_img, uploadType):
         resized_pil = Image.fromarray(thresh_img)
         
         #creates file in which latex output is stored(temporary)
-        file_path = 'my_new_file.txt'
-        content_to_write = "Hello, world!\nThis is a new text file created with Python.\n"
+        
 
         try:
             #reads image and converts forumla to latex
@@ -32,9 +31,7 @@ def processImage(streamlit_img, uploadType):
             output = p2t.recognize(resized_pil, file_type=uploadType)
 
             #writes latex output to file and then returns output so it can be displayed in app.py 
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(output)
-            print(f"File '{file_path}' created and written successfully.")
+            
             return output
         except Exception as e:
             print(f"An error occurred: {e}")

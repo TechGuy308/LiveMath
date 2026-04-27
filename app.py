@@ -51,9 +51,14 @@ with canvas_col:
     
     if st.button("submit"):
          #detected_text = src.vision.processImage(init_canvas)
-        canvas_latex = src.vision.processImage(init_canvas.image_data, "formula")
-        # 2. Save it to session state
-        st.session_state.user_work = f"user's question/explanation:{user_text_input}. The Equation they wrote:{str(canvas_latex)}"
+        if init_canvas.json_data is not None:
+            objects = init_canvas.json_data.get("objects")
+            if objects:
+                canvas_latex = src.vision.processImage(init_canvas.image_data, "formula")
+                # 2. Save it to session state
+                st.session_state.user_work = f"{user_text_input}. The Equation they wrote:{str(canvas_latex)}"
+            else:
+                st.session_state.user_work = f"{user_text_input}."
     
         
 
@@ -84,9 +89,11 @@ if st.session_state.quest_text:
                 
                 # Save to memory
                 engine.save_exchange(st.session_state.current_question, st.session_state.user_work)
-                
+                st.session_state.current_stage += 1
+                st.session_state.current_question = engine.get_next_question(st.session_state["quest_text"])
+                st.rerun()
                 # Check if done
-                if engine.check_problem_complete(st.session_state["quest_text"]):
+                '''if engine.check_problem_complete(st.session_state["quest_text"]):
                     st.balloons()
                     st.success("🎉 Problem Complete!")
                     
@@ -99,6 +106,7 @@ if st.session_state.quest_text:
                     # Get next question
                     st.session_state.current_stage += 1
                     st.session_state.current_question = engine.get_next_question(st.session_state["quest_text"])
-                    st.rerun()
+                    st.rerun()'''
             else:
                 st.error("❌ Not correct. Try again.")
+                engine.save_exchange(st.session_state.current_question, st.session_state.user_work)
