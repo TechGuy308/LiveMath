@@ -1,10 +1,6 @@
-from sympy import sympify, simplify, solve, symbols
 
 from langchain_ollama import OllamaLLM
-
 from langchain_core.prompts import PromptTemplate
-
-
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
 
@@ -12,11 +8,12 @@ from langchain_core.messages import HumanMessage, AIMessage
 class MathTutorEngine():
     # Logic Engine for APP
 
-    def __init__(self, model ="llama3.2:1b"):
-        self.llm = OllamaLLM(model=model)
+    def __init__(self, model =("phi3:mini")):
+        self.llm = OllamaLLM(model=model, temperature=0, num_predict=150)
         self.memory = ChatMessageHistory()
         self.convo_hist = ""
 
+    #Get intial guidning question
     def get_opening_question(self, problem):
         
         prompt = f"""
@@ -27,7 +24,7 @@ class MathTutorEngine():
         {problem}
 
         Your goal:
-        Ask the BEST first question to help the student start thinking.
+        Ask the BEST first question to help the student start thinking. (Remember the goal is to let the student figrure things out themselves)
 
         Guidelines:
         - Ask only ONE question
@@ -42,11 +39,14 @@ class MathTutorEngine():
         - identifying the type of problem (motion, forces, etc.)
         - identifying relevant relationships
 
-        
+        Do not congratulate the student. 
+        Do not summarize the laws of physics. 
+        Keep it under 25 words.
         
         Return ONLY: Question:"""
         return self.llm.invoke(prompt)
     
+    #Checks if user's answer was correct
     def validate_answer(self, problem, question, user_answer):
         """Check if answer is correct"""
         prompt = f"""Problem: {problem}
@@ -61,7 +61,7 @@ class MathTutorEngine():
         print(result)
         return "CORRECT" in result
     
-    #Get Next Question If USer was Correct
+    #Get Next guiding question If USer was Correct
     def get_next_question(self, problem):
         """Generate next question based on conversation history"""
 
@@ -74,7 +74,7 @@ class MathTutorEngine():
         prompt = f"""Problem: {problem}
 
         Conversation history so far:
-        {self.memory.messages}
+        {self.convo_hist}
 
         Based on what the student has answered so far, generate the NEXT guiding question.
         Make it build on what they've established.
@@ -82,7 +82,8 @@ class MathTutorEngine():
         Next Question:"""
         
         return self.llm.invoke(prompt)
-    
+
+    #Checks if the problem is complete
     def check_problem_complete(self, problem):
         """Check if problem is fully solved"""
         prompt = f"""Problem: {problem}
@@ -96,15 +97,19 @@ class MathTutorEngine():
         result = self.llm.invoke(prompt)
         return "YES" in result
     
+    #Saves chat history
     def save_exchange(self, question, answer):
         """Save Q&A to conversation history"""
         self.memory.add_ai_message(question)
         self.memory.add_user_message(answer)
         for msg in self.memory.messages:
             role = "Student" if isinstance(msg, HumanMessage) else "Tutor"
-            self.convo_hist += f"{role}: {msg.content}\n"
+            
+        self.convo_hist += f"{role}: {msg.content}\n"
         file_path = 'my_new_file.txt'
-        with open(file_path, 'w', encoding='utf-8') as file:
+        with open(file_path, "r+") as file:
+            file.truncate(0)
+        with open(file_path, 'a', encoding='utf-8') as file:
                 file.write(str(self.convo_hist))
                 print(f"File '{file_path}' created and written successfully.")
         
@@ -112,3 +117,27 @@ class MathTutorEngine():
     def reset(self):
         """Clear conversation for new problem"""
         self.memory.clear()
+
+    def Ai_Draw(self,canvas_height=600,canvas_width=1200):
+        prompt = f"""
+                    The student drew an image or equation at these coordinates:
+                    Your job is the return the coordinates of their mistake so that it can be highlighted.
+
+                    Return this JSON:
+                    {{
+                        "highlight_coords": [400, 300] 
+                    }}"""
+        
+        result = self.llm.invoke(prompt)
+        square = {
+            "type": "rect",
+            "left": 900,
+            "top": 780,
+            "width": 100,
+            "height": 100,
+            "fill": "rgba(255, 0, 0, 0.01)",
+            "stroke": "red",
+            "strokeWidth": 0
+        }
+        return square
+    
