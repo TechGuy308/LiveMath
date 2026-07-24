@@ -10,7 +10,8 @@ import io
 import base64
 import os
 import streamlit.components.v1 as components
-import streamlit_excalidraw
+
+import json
 
 #page_width = screeninfo.get_monitors.
 st.set_page_config(layout="wide")
@@ -27,31 +28,8 @@ page_height = streamlit_js_eval(
     js_expressions='screen.height',
     key='HEIGHT'
     )
-canvas_width = page_width 
-canvas_height = page_height
-
-#Creates grid for Streamlit Canvas
-fig, axis = plt.subplots()
-axis.grid(True)
-axis.set_xlim(0, canvas_width)
-axis.set_ylim(0, canvas_height)
-plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-buf = io.BytesIO()
-
-folder = 'src'
-filename = 'grid.png'
-# Combine path and save
-full_path = os.path.join(folder, filename)
-
-plt.savefig(buf, format='png')
-buf.seek(0)
-grid = Image.open(buf)
-
-
-img_str = base64.b64encode(buf.read()).decode()
-grid_url = f"data:image/png;base64,{img_str}"
-plt.close()
-
+canvas_width = 1100
+canvas_height = 600
 
 
 if "quest_text" not in st.session_state:
@@ -60,8 +38,12 @@ if "quest_text" not in st.session_state:
 if "user_work" not in st.session_state:
     st.session_state.user_work = None
 
+@st.cache_resource
+def load_tutor_engine():
+    return MathTutorEngine()
+
 if "engine" not in st.session_state:
-    st.session_state.engine = MathTutorEngine()
+    st.session_state.engine = load_tutor_engine()
     st.session_state.current_stage = 1
     st.session_state.current_question = None
 
@@ -104,8 +86,8 @@ with canvas_col:
         key="canvas", 
         initial_drawing={"objects": st.session_state.ai_drawing}, 
         display_toolbar= True,
-        update_streamlit=False)
-    export_data = streamlit_excalidraw.excalidraw_whiteboard(height=600, key="my_canvas", trigger_export=True)
+        update_streamlit=True)
+    
     
 with chat_col:
     messages_container = st.container(height=400, border= True)
@@ -113,26 +95,19 @@ with chat_col:
         "Explain your reasoning (why did you write/draw this?):",
         placeholder="e.g., 'I identified these values from the problem statement...'"
     )
-        
+    sumbit_button =     None
     if st.button("submit"):
-        st.write(str(export_data) + "hi")
-         #detected_text = src.vision.processImage(init_canvas)
-        if export_data is not None:
+        #send image data to Vision.py
+        objects = init_canvas.json_data.get("objects")
             
-            objects = init_canvas.json_data.get("objects")
+        if objects:
             
-            
-            if objects:
+            if init_canvas.json_data is not None:
+                raw_objects = init_canvas.json_data.get("objects", [])
                 analysis_results = src.vision.processImage(init_canvas.image_data, "formula")
-                # 2. Save it to session state
-                st.session_state.user_work = {
-                "visual_analysis": analysis_results, 
-                "reasoning": reasoning
-            }
-                st.rerun()
-            else:
-                st.warning("Please Draw Something")
-    
+                
+                
+            
         
 
 
@@ -154,8 +129,9 @@ if st.session_state.quest_text:
         
         
         if st.session_state.user_work:
-            # Validate
-            if engine.validate_answer(st.session_state["quest_text"], st.session_state.current_question, st.session_state.user_work):
+            json_data = engine.validate_answer_with_feedback(st.session_state["quest_text"], st.session_state.current_question, reasoning, analysis_results)
+            is_correct, hint, highlighter= engine.Ai_Interactions(json_data=json_data)
+            if "CORRECT" in is_correct:
                 st.success("✓ Correct!")
                 
                 # Save to memory
@@ -164,23 +140,11 @@ if st.session_state.quest_text:
                 st.session_state.current_question = engine.get_next_question(st.session_state["quest_text"])
                 st.session_state.user_work = None
                 st.rerun()
-                # Check if done
-                '''if engine.check_problem_complete(st.session_state["quest_text"]):
-                    st.balloons()
-                    st.success("🎉 Problem Complete!")
-                    
-                    if st.button("New Problem"):
-                        engine.reset()
-                        st.session_state.current_stage = 1
-                        st.session_state.current_question = None
-                        st.rerun()
-                else:
-                    # Get next question
-                    st.session_state.current_stage += 1
-                    st.session_state.current_question = engine.get_next_question(st.session_state["quest_text"])
-                    st.rerun()'''
+                
             else:
-
-                st.session_state.ai_drawing.append(engine.Ai_Draw)
-                st.error("❌ Not correct. Try again.")
-                engine.save_exchange(st.session_state.current_question, st.session_state.user_work)
+                    # Draw a red box on the canvas showing the mistake
+                    st.session_state.ai_drawing.append(highlighter)
+                
+                    st.write(f"**Hint:** {hint}")
+        
+                    engine.save_exchange(st.session_state.current_question, st.session_state.user_work)
