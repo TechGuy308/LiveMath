@@ -30,7 +30,7 @@ class MathTutorEngine():
     #Checks if user's answer was correct
     def validate_answer_with_feedback(self, init_problem, ai_gen_question, reasoning, vision_feedback):
         #Validate and provide visual feedback on mistakes
-        result = self.llm.invoke(prompts.VALIDATE_USER_REPONSE.format(problem=init_problem, question=ai_gen_question, vision_feedback=vision_feedback, reasoning=reasoning))
+        result = self.llm.with_structured_output(Validate_Class, method="json_schema").invoke(prompts.VALIDATE_USER_RESPONSE.format(problem=init_problem, question=ai_gen_question, vision_feedback=vision_feedback, reasoning=reasoning))
         try:
             validation_data = Validate_Class.model_validate_json(result)
             

@@ -67,6 +67,7 @@ def processImage(streamlit_img, uploadType):
                 response = ollama.generate(
                   model="qwen2.5vl",
                   prompt= prompts.VISION_LLM_PROMPT,
+                  format="json",
                   images=[img_bytes]
                 )
                 

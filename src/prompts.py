@@ -27,7 +27,7 @@ OPENING_QUESTION_PROMPT = """
         
         Return ONLY: Question:"""
 
-VALIDATE_USER_REPONSE = """Problem: {problem}
+VALIDATE_USER_RESPONSE = """Problem: {problem}
     Question asked: {question}
 
     Student's reasoning: {reasoning}
