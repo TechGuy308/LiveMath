@@ -1,81 +1,51 @@
 
 import cv2 as cv
-import numpy as np
 import os
-from PIL import Image
-import src.prompts as prompts
-from langchain_core.prompts import ChatPromptTemplate
 from io import BytesIO
-import ollama
-
-
+from langchain_groq import ChatGroq
+import base64
 from dotenv import load_dotenv
+from PIL import Image, ImageDraw, ImageFont
 
 # This looks for the .env file and loads the variables
-load_dotenv()
-import pix2text
-p2t = pix2text.Pix2Text.from_config()
+load_dotenv("data/.env")
 
-# Now you can access them using os.environ
-#my_api_key = os.getenv("API_KEY")
-#model = md.vl(api_key=my_api_key)
+grid_img = Image.open("maingrid.png")
 
 
 #Process image uploads and canvas drawings
-def processImage(streamlit_img, uploadType):
-    if streamlit_img is None:
-        return None
-    else:
-       
-            # 1. Convert NumPy array directly to PIL RGBA image
+def processImage(img):
+    try:
         
-                        
-        try:
-            #For the upload question
-            if uploadType == "text":
-                #Using pix2text for uploaded problems to retrieve text
-                output = p2t.recognize(streamlit_img, file_type=uploadType)
-                return output
-            
-            #For canvas 
-            elif uploadType == "formula":
-                raw_pil = Image.fromarray(streamlit_img.astype('uint8'), 'RGBA')
-                            
-                            # 2. Create a solid white background image of the same size
-                white_bg = Image.new("RGBA", raw_pil.size, (255, 255, 255, 255))
-                            
-                            # 3. Composite the drawing on top of the white background
-                            # (This strips transparency cleanly without turning the background black!)
-                pil_img = Image.alpha_composite(white_bg, raw_pil).convert("RGB")
-                            
-                        # Handle normal uploaded file objects (from st.file_uploader)
+        #buffered = BytesIO()
+        #img.save(buffered, format="JPEG")
+        #img_str = base64.b64encode(buffered.getvalue())
+        #if os.path.isfile(img):
+            #with open(img, "rb") as file:
+                #img_str = base64.b64encode(file.read()).decode("utf-8")
+        #else:
+            #print("Error: Path is a directory or does not exist.")
+        img = Image.fromarray(img)
 
-                cv_img = cv.cvtColor(np.array(pil_img), cv.COLOR_RGB2BGR)
-                gray = cv.cvtColor(cv_img, cv.COLOR_BGR2GRAY)
-                _, thresh = cv.threshold(gray, 230, 255, cv.THRESH_BINARY_INV)
-                
-                
-                cv.imwrite("debug_contours.png", thresh)
-                
-                #math_out = p2t.recognize_formula(roi)
+# 2. Save image data to a memory buffer
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")    
 
-                
-                buffered = BytesIO()
-                pil_img.save(buffered, format="PNG")
-                img_bytes = buffered.getvalue()
-
-                response = ollama.generate(
-                  model="qwen2.5vl",
-                  prompt= prompts.VISION_LLM_PROMPT,
-                  format="json",
-                  images=[img_bytes]
-                )
-                
-                # Package for Logic.py
-                print(response.response)
-                return response.response
-                
-        except Exception as e:
-            print(f"An error occurred: {e}")
+# 3. Encode buffer bytes to base64 string
+        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        print(f"data:image/jpeg;base64,{img_str}")
+        return f"data:image/jpeg;base64,{img_str}"
+    except Exception as e:
+        print(f"An error occurred in vision process: {e}")
         
             
+def draw_img(image_base64:str, x_min:int, y_min:int, x_max:int, y_max:int, feedback_text:str):
+    image_bytes = base64.b64decode(image_base64)
+    img = Image.open(BytesIO(image_bytes)).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    
+    draw.rectangle([x_min,y_min,x_max,y_max], outline="red", width=4)
+    draw.text((x_min,max(0, y_min)),feedback_text,fill="red")
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
