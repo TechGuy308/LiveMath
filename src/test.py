@@ -49,7 +49,7 @@ Do not infer information that is not visibly present.
 Return a clear, concise description of the mathematical content.
 """
 
-def handle_submission(image_dict):
+Pizza2='''def handle_submission(image_dict):
     # 1. Process or save what the user drew
     user_drawing = image_dict["composite"]
     print("Saved user drawing data shape:", user_drawing.shape)
@@ -77,4 +77,4 @@ with gr.Blocks() as demo:
     btn.click(fn=handle_submission, inputs=canvas, outputs=canvas)
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch()'''

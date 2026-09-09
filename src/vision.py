@@ -26,15 +26,11 @@ def processImage(img):
         #else:
             #print("Error: Path is a directory or does not exist.")
         img = Image.fromarray(img)
-
-# 2. Save image data to a memory buffer
         buffered = BytesIO()
         img.save(buffered, format="PNG")    
-
-# 3. Encode buffer bytes to base64 string
         img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
-        print(f"data:image/jpeg;base64,{img_str}")
-        return f"data:image/jpeg;base64,{img_str}"
+        #print(f"data:image/png;base64,{img_str}")
+        return f"data:image/png;base64,{img_str}"
     except Exception as e:
         print(f"An error occurred in vision process: {e}")
         

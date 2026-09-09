@@ -4,28 +4,24 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
 
 class Conversation():
-    def __init__(self):
+    def __init__(self, trigger_function):
         self.memory = []
+        self.trigger_function = trigger_function
 
-    def add_tutor(self, ai_message):
-        self.memory.append({"role": "TUTOR MODEL", "content": ai_message})
-    def add_vision(self, img_message):
-        self.memory.append({"role": "VISION MODEL", "content": img_message})
+    def trigger(self):
+        return self.trigger_function(self.memory)
 
-    def add_user(self, user_message):
-        self.memory.append({"role": "User", "content": user_message})
+    def add_tutor(self, message):
+        self.memory.append(AIMessage(content=message))
 
-    def add_tool(self, tool):
-        self.memory.append({
-            "role": "tool_caller",
-            "tool": tool
-        })
-    def add_system(self, message):
-        self.memory.append({
-            "role": "System",
-            "message": str(message)
-        })
+    def add_vision(self, message):
+        self.memory.append(
+        HumanMessage(content=f"[VISION OBSERVATION]\n{message}"))
+        return self.trigger()
 
-    def get_messages(self):
-        return self.memory
+    def add_user(self, message):
+        self.memory.append(HumanMessage(content=message))
+        return self.trigger()
+
+    
         
