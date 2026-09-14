@@ -19,9 +19,6 @@ client = Groq(
 )
 
 
-
-
-
 class Vision_Class(BaseModel):
     description: str = Field(description="A description of the handwritten image content.")
     latex: str = Field(description="The mathematical latex representation string.")
@@ -50,17 +47,20 @@ Avaiable_Tools = [Ai_Draw]
 class MathTutorEngine():
 
     def __init__(self, model =("qwen/qwen3.6-27b")):
+        self.basic_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden", reasoning_effort="low")
         self.llm = ChatGroq(model=model, temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden")
         self.chat_history = src.convo_hist.Conversation(trigger_function=self.tutor)
         self.tutor_agent = create_agent(model=self.llm, tools=Avaiable_Tools, system_prompt=prompts.TUTOR_PROMPT)
         
     #Get intial guiding question
     def get_opening_question(self, problem):
-        print(problem)
-        response = self.llm.invoke(prompts.OPENING_QUESTION_PROMPT.format(problem=problem))
-        print(response.content)
+        print("start button clicked")
+        self.chat_history.add_system(f"This is the initial question: {problem}")
+        response = self.basic_llm.invoke(prompts.OPENING_QUESTION_PROMPT.format(problem=problem))
+        print(response)
+        
         self.chat_history.add_tutor(response.content)
-        return response.content, response.content
+        return response.content
     
     #Checks if user's answer was correct
     def vision(self, img_data):
@@ -91,7 +91,7 @@ class MathTutorEngine():
                 "latex": result.latex,
                 "description": result.description
             }
-            self.chat_history.add_vision(vision_result)
+            return self.chat_history.add_vision(vision_result)
             
 
         except Exception as e:
@@ -99,8 +99,8 @@ class MathTutorEngine():
                 print("Error Occured+" + str(e))
                 result = self.llm.invoke([message])
                 response_text = getattr(result, "content", str(result))
-                self.chat_history.add_vision(response_text)
-                return response_text
+                return self.chat_history.add_vision(response_text)
+                
 
             except Exception as e:
                 print("Error Occured+" + str(e))
@@ -115,10 +115,15 @@ class MathTutorEngine():
         if not messages:
             return "I could not generate a response."
 
-        last_message = messages[-1]
-        response_text = getattr(last_message, "content", str(last_message))
-        print(response_text)
-        return response_text
+        for message in reversed(messages):
+            response_text = getattr(message, "content", "")
+            if isinstance(response_text, str) and response_text.strip():
+                response_text = response_text.strip()
+                print(response_text)
+                self.chat_history.add_tutor(response_text)
+                return response_text
+
+        return "I had trouble reading your latest work. Try submitting it again, or tell me what step you're stuck on."
 
         
         

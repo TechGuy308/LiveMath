@@ -1,7 +1,7 @@
 #Manage conversation history
 
 from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 class Conversation():
     def __init__(self, trigger_function):
@@ -22,6 +22,9 @@ class Conversation():
     def add_user(self, message):
         self.memory.append(HumanMessage(content=message))
         return self.trigger()
+    def add_system(self, message):
+        self.memory.append(SystemMessage(content=message))
+            
 
     
         
