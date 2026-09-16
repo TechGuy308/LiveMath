@@ -7,10 +7,10 @@ import os
 import src.vision
 import src.convo_hist
 from langchain_core.messages import HumanMessage
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from pydantic import BaseModel, Field, BeforeValidator, field_validator
 from typing import Literal
 from groq import Groq
+
 
 load_dotenv()
 my_api_key = os.getenv("GROQ_API_KEY")
@@ -34,19 +34,35 @@ class Vision_Class(BaseModel):
 
 #tools
 @tool
-def Ai_Draw(image_base64:str, x_min:int, y_min:int, x_max:int, y_max:int, feedback_text:str) ->str:
+def Pinpoint(image_base64:str, x_min:int, y_min:int, x_max:int, y_max:int, feedback_text:str) ->str:
     """
-    Draws a red highlight box and feedback text directly onto the student's image.
-    Returns the newly annotated image as a base64 string.
+    Use if you want to highlight or call attention to some part of the students work
     """
     return src.vision.draw_img(image_base64, x_min, y_min, x_max, y_max, feedback_text)
+
+    #wrapper = DallEAPIWrapper(
+     #   model_name="dall-e-2"
+     #   size="1024x1024",
+     #   quality="standard",
+     #   api_key=os.getenv("OPENAI_API_KEY")
+    #)
+   # image_tool = OpenAIDALLEImageGenerationTool(
+      #  description="Image generation model specialized in creating visual representations of mathmatical processes",
+     #   api_wrapper=wrapper
+   # )
+
+@tool
+def Ascii_Visual(visual:str) -> str:
+    """User when a visual would help to clarify the problem/solution/process. Create an ascii image for the visual"""
+    return  f"```text\n{visual}\n```"
+
     
-Avaiable_Tools = [Ai_Draw]
+Avaiable_Tools = [Pinpoint, Ascii_Visual]
 
 # Logic Engine for APP
 class MathTutorEngine():
 
-    def __init__(self, model =("qwen/qwen3.6-27b")):
+    def __init__(self, model =("qwen/qwen3.8-27b")):
         self.basic_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden", reasoning_effort="low")
         self.llm = ChatGroq(model=model, temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden")
         self.chat_history = src.convo_hist.Conversation(trigger_function=self.tutor)

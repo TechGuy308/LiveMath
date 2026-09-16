@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 # This looks for the .env file and loads the variables
 load_dotenv("data/.env")
 
-grid_img = Image.open("maingrid.png")
+
 
 
 #Process image uploads and canvas drawings

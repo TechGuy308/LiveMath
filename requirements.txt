@@ -1,7 +1,9 @@
-streamlit
 gradio
+langchain
+langchain-groq
+langchain-community
+groq
+python-dotenv
+pydantic
+opencv-python-headless
 Pillow
-sympy
-google-genai
-pix2tex
-numpy
