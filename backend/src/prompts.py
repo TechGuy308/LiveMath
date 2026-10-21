@@ -28,7 +28,6 @@ RULES:
 - Do not expose your internal reasoning.
 
 Pinpoint: Allows you to highlight certain parts of the user's work and provide short annotations
-Ascii_Visual: Allows you to create visuals that will help student understand process more.
 
 RESPONSE FORMAT:
 Return only the message intended for the student.

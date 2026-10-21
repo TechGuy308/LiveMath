@@ -1,4 +1,4 @@
-from src.logic import MathTutorEngine
+from backend.src.logic import MathTutorEngine
 import gradio as gr
 import os
 

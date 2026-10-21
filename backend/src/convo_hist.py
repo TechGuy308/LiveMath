@@ -7,7 +7,8 @@ class Conversation():
     def __init__(self, trigger_function):
         self.memory = []
         self.trigger_function = trigger_function
-
+        
+    #Trigger the function to generate a response from the tutor agent based on the conversation history
     def trigger(self):
         return self.trigger_function(self.memory)
 
@@ -22,6 +23,7 @@ class Conversation():
     def add_user(self, message):
         self.memory.append(HumanMessage(content=message))
         return self.trigger()
+    
     def add_system(self, message):
         self.memory.append(SystemMessage(content=message))
             

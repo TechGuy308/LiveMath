@@ -1,11 +1,11 @@
 from langchain.agents import create_agent
-import src.prompts as prompts
+import backend.src.prompts as prompts
 from langchain_groq import ChatGroq
 from langchain.tools import tool
 from dotenv import load_dotenv
 import os
-import src.vision
-import src.convo_hist
+import backend.src.vision
+import backend.src.convo_hist
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel, Field, BeforeValidator, field_validator
 from typing import Literal
@@ -18,7 +18,7 @@ client = Groq(
     api_key=my_api_key
 )
 
-
+#Pydantic model for structured output from vision analysis
 class Vision_Class(BaseModel):
     description: str = Field(description="A description of the handwritten image content.")
     latex: str = Field(description="The mathematical latex representation string.")
@@ -38,26 +38,13 @@ def Pinpoint(image_base64:str, x_min:int, y_min:int, x_max:int, y_max:int, feedb
     """
     Use if you want to highlight or call attention to some part of the students work
     """
-    return src.vision.draw_img(image_base64, x_min, y_min, x_max, y_max, feedback_text)
+    return backend.src.vision.draw_img(image_base64, x_min, y_min, x_max, y_max, feedback_text)
 
-    #wrapper = DallEAPIWrapper(
-     #   model_name="dall-e-2"
-     #   size="1024x1024",
-     #   quality="standard",
-     #   api_key=os.getenv("OPENAI_API_KEY")
-    #)
-   # image_tool = OpenAIDALLEImageGenerationTool(
-      #  description="Image generation model specialized in creating visual representations of mathmatical processes",
-     #   api_wrapper=wrapper
-   # )
 
-@tool
-def Ascii_Visual(visual:str) -> str:
-    """User when a visual would help to clarify the problem/solution/process. Create an ascii image for the visual"""
-    return  f"```text\n{visual}\n```"
+
 
     
-Avaiable_Tools = [Pinpoint, Ascii_Visual]
+Avaiable_Tools = [Pinpoint]
 
 # Logic Engine for APP
 class MathTutorEngine():
@@ -65,7 +52,7 @@ class MathTutorEngine():
     def __init__(self, model =("qwen/qwen3.8-27b")):
         self.basic_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden", reasoning_effort="low")
         self.llm = ChatGroq(model=model, temperature=0, max_tokens=1000,api_key=my_api_key, reasoning_format="hidden")
-        self.chat_history = src.convo_hist.Conversation(trigger_function=self.tutor)
+        self.chat_history = backend.src.convo_hist.Conversation(trigger_function=self.tutor)
         self.tutor_agent = create_agent(model=self.llm, tools=Avaiable_Tools, system_prompt=prompts.TUTOR_PROMPT)
         
     #Get intial guiding question
@@ -78,7 +65,7 @@ class MathTutorEngine():
         self.chat_history.add_tutor(response.content)
         return response.content
     
-    #Checks if user's answer was correct
+    #Analyze the student's handwritten work and provide feedback
     def vision(self, img_data):
         #Validate and provide visual feedback on mistakes
         structured_output = self.llm.with_structured_output(Vision_Class)
@@ -93,12 +80,12 @@ class MathTutorEngine():
             {
                 "type": "image_url",
                 "image_url": {
-                    "url": src.vision.processImage(img_data.get("composite", None))
+                    "url": backend.src.vision.processImage(img_data)
                 }
             }
         ]
     )
-
+        #Attempt to get structured output from the vision analysis, if it fails, fall back to unstructured output
         try:
             result = structured_output.invoke([message])
             print(f"{result.description} {result.latex} {result.type}")
@@ -111,6 +98,7 @@ class MathTutorEngine():
             
 
         except Exception as e:
+            #Attempt to get unstructured output from the vision analysis if structured output fails
             try:
                 print("Error Occured+" + str(e))
                 result = self.llm.invoke([message])
@@ -122,9 +110,11 @@ class MathTutorEngine():
                 print("Error Occured+" + str(e))
                 return "Oops Something Went Wrong 😭"
 
+    #Allow the user to ask questions and get responses from the tutor agent
     def ask(self, input):
         return self.chat_history.add_user(input)
 
+    #Generate a response from the tutor agent based on the conversation history
     def tutor(self, history):
         response = self.tutor_agent.invoke({"messages": history})
         messages = response.get("messages", [])
