@@ -219,7 +219,7 @@ h2 {
 
 
 
-.response {
+.query {
   background-color: rgba(47, 47, 241, 0.819);
   color: white;
   padding: 10px 14px;
@@ -234,7 +234,7 @@ h2 {
   line-height: 1.35;
 }
 
-.query {
+.response {
   background-color: rgba(220, 220, 220, 0.325);
   color: rgb(47, 47, 47);
   width: fit-content;

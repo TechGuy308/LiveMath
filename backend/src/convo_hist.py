@@ -9,20 +9,29 @@ class Conversation():
         self.trigger_function = trigger_function
         
     #Trigger the function to generate a response from the tutor agent based on the conversation history
-    def trigger(self):
-        return self.trigger_function(self.memory)
+    def trim_memory(self):
+        value = self.memory + []
+        if len(value) > 10:
+            value2 = value[-(len(value)-(len(value)-10)):]
+            value2.insert(0, value[0])
+            return value2
+        else:
+            return value
+        
+    async def trigger(self):
+        return await self.trigger_function(self.trim_memory())
 
     def add_tutor(self, message):
         self.memory.append(AIMessage(content=message))
 
-    def add_vision(self, message):
+    async def add_vision(self, message):
         self.memory.append(
         HumanMessage(content=f"[VISION OBSERVATION]\n{message}"))
-        return self.trigger()
+        return await self.trigger()
 
-    def add_user(self, message):
+    async def add_user(self, message):
         self.memory.append(HumanMessage(content=message))
-        return self.trigger()
+        return await self.trigger()
     
     def add_system(self, message):
         self.memory.append(SystemMessage(content=message))

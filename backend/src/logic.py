@@ -56,17 +56,17 @@ class MathTutorEngine():
         self.tutor_agent = create_agent(model=self.llm, tools=Avaiable_Tools, system_prompt=prompts.TUTOR_PROMPT)
         
     #Get intial guiding question
-    def get_opening_question(self, problem):
+    async def get_opening_question(self, problem):
         print("start button clicked")
         self.chat_history.add_system(f"This is the initial question: {problem}")
-        response = self.basic_llm.invoke(prompts.OPENING_QUESTION_PROMPT.format(problem=problem))
+        response = await self.basic_llm.ainvoke(prompts.OPENING_QUESTION_PROMPT.format(problem=problem))
         print(response)
         
         self.chat_history.add_tutor(response.content)
         return response.content
     
     #Analyze the student's handwritten work and provide feedback
-    def vision(self, img_data):
+    async def vision(self, img_data):
         #Validate and provide visual feedback on mistakes
         structured_output = self.llm.with_structured_output(Vision_Class)
         
@@ -87,23 +87,23 @@ class MathTutorEngine():
     )
         #Attempt to get structured output from the vision analysis, if it fails, fall back to unstructured output
         try:
-            result = structured_output.invoke([message])
+            result = await structured_output.ainvoke([message])
             print(f"{result.description} {result.latex} {result.type}")
             vision_result = {
                 "type": result.type,
                 "latex": result.latex,
                 "description": result.description
             }
-            return self.chat_history.add_vision(vision_result)
+            return await self.chat_history.add_vision(vision_result)
             
 
         except Exception as e:
             #Attempt to get unstructured output from the vision analysis if structured output fails
             try:
                 print("Error Occured+" + str(e))
-                result = self.llm.invoke([message])
+                result = await self.llm.ainvoke([message])
                 response_text = getattr(result, "content", str(result))
-                return self.chat_history.add_vision(response_text)
+                return await self.chat_history.add_vision(response_text)
                 
 
             except Exception as e:
@@ -111,12 +111,12 @@ class MathTutorEngine():
                 return "Oops Something Went Wrong 😭"
 
     #Allow the user to ask questions and get responses from the tutor agent
-    def ask(self, input):
-        return self.chat_history.add_user(input)
+    async def ask(self, input):
+        return await self.chat_history.add_user(input)
 
     #Generate a response from the tutor agent based on the conversation history
-    def tutor(self, history):
-        response = self.tutor_agent.invoke({"messages": history})
+    async def tutor(self, history):
+        response = await self.tutor_agent.ainvoke({"messages": history})
         messages = response.get("messages", [])
         if not messages:
             return "I could not generate a response."
@@ -131,12 +131,3 @@ class MathTutorEngine():
 
         return "I had trouble reading your latest work. Try submitting it again, or tell me what step you're stuck on."
 
-        
-        
-        
-
-        
-
-
-   
-    

@@ -1,6 +1,7 @@
 import fastapi
 from backend.src.logic import MathTutorEngine
 from fastapi.middleware.cors import CORSMiddleware
+
 #uvicorn backend.src.server:app --host 0.0.0.0 --port 8000 --reload
 
 #Initialize the math tutor engine and FastAPI app
@@ -26,14 +27,15 @@ app.add_middleware(
 #Calls brain methods
 @app.post("/ask")
 async def ask(message: str = fastapi.Body()):
-    return {"reply":brain.ask(message)}
+    print("user message recieved")
+    return {"reply":await brain.ask(message)}
 
 @app.post("/vision")
 async def vision(image: fastapi.UploadFile = fastapi.File()):
     image_bytes = await image.read()
-    return {"reply":brain.vision(image_bytes)}
+    return {"reply":await brain.vision(image_bytes)}
 
 @app.post("/opener")
 async def opener(message: str = fastapi.Body(embed=True)):
-    return {"reply":brain.get_opening_question(message)}
+    return {"reply":await brain.get_opening_question(message)}
 

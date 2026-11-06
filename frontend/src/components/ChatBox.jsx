@@ -5,15 +5,16 @@ import { TextField, Button } from '@mui/material';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import { AskTutor } from '../api';
 import Draggable from 'react-draggable';
-import { useState } from "react";
+import { useState, useRef, useContext } from "react";
+import { chatProvider } from '../ChatHistoryManager.jsx';
 
 // Main chat component that renders the draggable tutor window.
 export default function Chat(){
     // Tracks the current text value in the input field before submission.
     const [message, setMessage] = useState("");
-
-    // Stores the entire chat transcript so the UI can render both user and assistant messages.
-    const [history, setHistory] = useState(["Hello I am the chat bot"]);
+    const { history, write2History } = useContext(chatProvider);
+    
+    
 
     // Prevents duplicate sends while the app is waiting on a tutor response.
     const [loading, setLoading] = useState(false);
@@ -33,36 +34,19 @@ export default function Chat(){
 
             // Set the loading state so the UI knows a request is in progress.
             setLoading(true); 
+            write2History(message)
+            const userMessage = message;
+            setMessage("");
 
-            // Try the tutor request and handle the chat update flow.
-            try{
-                // Add the user's message to the visible conversation immediately.
-                setHistory((prev)=> [...prev, message])
-                const userMessage = message;
-                setMessage("");
-
+            try{ 
                 // Ask the backend tutor for a reply.
                 const response = await AskTutor(userMessage);
+                write2History(response)
                 console.log(response);
 
-                // Save the returned tutor answer to the conversation history.
-                setHistory((prev) => [...prev, response]);
                 
             } catch{
-                try{
-                    // Retry once if the first request fails unexpectedly.
-                    const userMessage = message;
-                    setMessage("");
-                    const response = await AskTutor(userMessage);
-                    console.log(response);
-                    setHistory((prev) => [...prev, response]);
-                    
-                }catch{
-                    // If both attempts fail, surface a graceful fallback message to the user.
-                    setHistory((prev)=> [...prev, "Sorry that message didn't go through"])
-                    setMessage("");
-                    
-                }
+                write2History("failed to get response")
             }finally{
                 // Always reset the loading flag so the user can send another message.
                 setLoading(false);
@@ -95,7 +79,6 @@ export default function Chat(){
                     )}
                 </div>
                 
-
                 {/* Input form for the user's next message to the tutor. */}
                 <form id='ChatForm' onSubmit={SendMessage} >
                     {/* Text field where the user types their math question. */}
@@ -105,8 +88,6 @@ export default function Chat(){
                     
                     {/* Submit button that sends the user's message to the backend. */}
                     <Button id='ChatSubmit' type='submit' endIcon={<TelegramIcon/>}/>
-
-                    
                 </form>
             
         </div>

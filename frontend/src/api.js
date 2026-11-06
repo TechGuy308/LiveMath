@@ -1,5 +1,4 @@
 // Shared functions for communication between the React frontend and Python backend.
-import { useEffect, useState } from 'react';
 
 const url = "http://localhost:8000";
 

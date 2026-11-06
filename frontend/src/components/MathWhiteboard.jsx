@@ -2,38 +2,41 @@
 import {Tldraw, useEditor, TldrawUiButton, toRichText, DefaultToolbar, DefaultToolbarContent} from 'tldraw'
 import 'tldraw/tldraw.css'
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Vision } from '../api';
+import { chatProvider } from '../ChatHistoryManager.jsx';
 
 
-
-export default function WhiteBoard(){
+export default function MathWhiteboard(){
     const [image, setImage] = useState("");
     const [AIOutput, setAIOutput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const { history, write2History } = useContext(chatProvider);
     
     function ImageButton() {
         
         const editor = useEditor();
         
+        
+        
+        
         return <TldrawUiButton
                     type="primary"
                     style={{ alignSelf: 'center', paddingLeft:'10px', paddingRight:'10px', color:'#459381'}}
                     onClick={async () => {
+                        if (loading) return; 
+                        setLoading(true); 
+
                         try{
                             const shapeIds = editor.getCurrentPageShapeIds();
                             if (shapeIds.size === 0) return alert('No shapes on the canvas')
-                            const { blob } = await editor.toImage([...shapeIds], { format: 'png', background: false });
+                            const { blob } = await editor.toImage([...shapeIds], { format: 'png', background: true });
                             const response = await Vision(blob);
-                            console.log(response);
-                            setAIOutput(response);
-
+                            write2History(response);
                         }catch{
-                            const shapeIds = editor.getCurrentPageShapeIds();
-                            if (shapeIds.size === 0) return alert('No shapes on the canvas')
-                            const { blob } = await editor.toImage([...shapeIds], { format: 'png', background: false });
-                            const response = await Vision(blob);
-                            console.log(response);
-                            setAIOutput(response);
+                            write2History("Failed to process message");
+                        }finally{
+                            setLoading(false);
                         }
                         
                         
