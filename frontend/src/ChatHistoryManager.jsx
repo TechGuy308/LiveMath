@@ -2,7 +2,7 @@ import { useState, createContext } from "react";
 export const chatProvider = createContext();
 
 
-export function ChatHistManager({children}){
+export default function ChatHistManager({children}){
     const [history, setHistory] = useState([]);
     function write2History(message){
         setHistory((prev)=> [...prev, message]);

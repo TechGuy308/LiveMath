@@ -27,7 +27,6 @@ app.add_middleware(
 #Calls brain methods
 @app.post("/ask")
 async def ask(message: str = fastapi.Body()):
-    print("user message recieved")
     return {"reply":await brain.ask(message)}
 
 @app.post("/vision")
@@ -36,6 +35,6 @@ async def vision(image: fastapi.UploadFile = fastapi.File()):
     return {"reply":await brain.vision(image_bytes)}
 
 @app.post("/opener")
-async def opener(message: str = fastapi.Body(embed=True)):
+async def opener(message: str = fastapi.Body()):
     return {"reply":await brain.get_opening_question(message)}
 

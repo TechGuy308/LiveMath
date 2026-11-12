@@ -7,7 +7,7 @@ import os
 import backend.src.vision
 import backend.src.convo_hist
 from langchain_core.messages import HumanMessage
-from pydantic import BaseModel, Field, BeforeValidator, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Literal
 from groq import Groq
 
@@ -57,10 +57,9 @@ class MathTutorEngine():
         
     #Get intial guiding question
     async def get_opening_question(self, problem):
-        print("start button clicked")
+        
         self.chat_history.add_system(f"This is the initial question: {problem}")
         response = await self.basic_llm.ainvoke(prompts.OPENING_QUESTION_PROMPT.format(problem=problem))
-        print(response)
         
         self.chat_history.add_tutor(response.content)
         return response.content
@@ -75,7 +74,6 @@ class MathTutorEngine():
             {
                 "type": "text",
                 "text": "Analyze the student's handwritten mathematical work. Describe what is visible."
-
             },
             {
                 "type": "image_url",
@@ -88,7 +86,7 @@ class MathTutorEngine():
         #Attempt to get structured output from the vision analysis, if it fails, fall back to unstructured output
         try:
             result = await structured_output.ainvoke([message])
-            print(f"{result.description} {result.latex} {result.type}")
+            
             vision_result = {
                 "type": result.type,
                 "latex": result.latex,
@@ -125,7 +123,6 @@ class MathTutorEngine():
             response_text = getattr(message, "content", "")
             if isinstance(response_text, str) and response_text.strip():
                 response_text = response_text.strip()
-                print(response_text)
                 self.chat_history.add_tutor(response_text)
                 return response_text
 

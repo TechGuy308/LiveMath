@@ -31,9 +31,8 @@ export default function Chat(){
         if (message && message.trim().length > 0) {
             // Stop duplicate requests while the current request is still pending.
             if (loading) return; 
-
-            // Set the loading state so the UI knows a request is in progress.
             setLoading(true); 
+
             write2History(message)
             const userMessage = message;
             setMessage("");
@@ -41,10 +40,7 @@ export default function Chat(){
             try{ 
                 // Ask the backend tutor for a reply.
                 const response = await AskTutor(userMessage);
-                write2History(response)
-                console.log(response);
-
-                
+                write2History(response)  
             } catch{
                 write2History("failed to get response")
             }finally{

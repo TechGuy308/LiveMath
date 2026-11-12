@@ -1,49 +1,63 @@
-export default function ProblemInputForm() {
-    console.log("ProblemSetup component rendered");
-    const [message, setMessage] = useState("");
+import { useNavigate } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { TextField, Button } from '@mui/material';
+import { chatProvider } from '../ChatHistoryManager.jsx';
+import { OpeningQuestion } from '../api';
 
-    function StartSolvingProcess(e) {
-        async (e)=>{
+export default function ProblemInputForm() {
+    const navigate = useNavigate();
+    const [message, setMessage] = useState("");
+    const { history, write2History } = useContext(chatProvider);
+    const [loading, setLoading] = useState(false);
+
+    const StartSolvingProcess = async (e)=>{
             // Prevent the browser from reloading the page during form submission.
+            
             e.preventDefault();
         
-        // Ignore empty or whitespace-only submissions.
+            // Ignore empty or whitespace-only submissions.
             if (message && message.trim().length > 0) {
-                // Stop duplicate requests while the current request is still pending.
-                if (loading) return; 
-
-                // Set the loading state so the UI knows a request is in progress.
+                if (loading) return;
                 setLoading(true); 
+
                 write2History(message)
                 const userMessage = message;
+                
                 setMessage("");
+                
 
                 try{ 
                     // Ask the backend tutor for a reply.
-                    const response = await AskTutor(userMessage);
+                    
+                    const response = await OpeningQuestion(userMessage);
                     write2History(response)
-                    console.log(response);
-
+                    navigate('/workit');
                     
                 } catch{
                     write2History("failed to get response")
                 }finally{
-                    // Always reset the loading flag so the user can send another message.
-                    setLoading(false);
+                // Always reset the loading flag so the user can send another message.
+                setLoading(false);
                 }
                 
             }
         };
-    }
-    
-    return(<div id="StartProblemTextDiv">
+
+        
+    return(
+    <div id="StartProblemTextDiv">
         <h2>Welcome to LiveMath</h2>
-        <form id="StartProblemTextForm">
-            <input type="text" id="StartProblemTextInput" name="text"  placeholder="Please enter math problem..."/><br></br>
-            <input type="submit" id="StartProblemTextButton" name="Start Solving"/>
 
+        <form id="StartProblemTextForm" onSubmit={StartSolvingProcess} >
+            {/* Text field where the user types their math question. */}
+            <TextField id="StartProblemTextInput" placeholder="Please enter math problem..."  value={message} onChange={(e) => {
+                setMessage(e.target.value);
+            }}/>
+                            
+            <Button id="StartProblemTextButton" type='submit' >
+                <p>Start Solving</p>
+            </Button>
         </form>
-
     </div>)
 
 }

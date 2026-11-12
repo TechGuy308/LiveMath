@@ -1,6 +1,5 @@
 #Manage conversation history
 
-from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 class Conversation():
@@ -8,16 +7,17 @@ class Conversation():
         self.memory = []
         self.trigger_function = trigger_function
         
-    #Trigger the function to generate a response from the tutor agent based on the conversation history
+    
     def trim_memory(self):
-        value = self.memory + []
-        if len(value) > 10:
-            value2 = value[-(len(value)-(len(value)-10)):]
-            value2.insert(0, value[0])
-            return value2
+        memory_snapshot = self.memory + []
+        if len(memory_snapshot) > 10:
+            # Keep the original question alongside the ten most recent messages.
+            recent_messages = memory_snapshot[-(len(memory_snapshot)-(len(memory_snapshot)-10)):]
+            recent_messages.insert(0, memory_snapshot[0])
+            return recent_messages
         else:
-            return value
-        
+            return memory_snapshot
+    #Trigger the function to generate a response from the tutor agent based on the conversation history
     async def trigger(self):
         return await self.trigger_function(self.trim_memory())
 
