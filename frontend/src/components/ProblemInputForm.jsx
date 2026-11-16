@@ -5,6 +5,8 @@ import { chatProvider } from '../ChatHistoryManager.jsx';
 import { OpeningQuestion } from '../api';
 
 export default function ProblemInputForm() {
+    const userRole = "user";
+    const aiRole = "ai";
     const navigate = useNavigate();
     const [message, setMessage] = useState("");
     const { history, write2History } = useContext(chatProvider);
@@ -20,7 +22,7 @@ export default function ProblemInputForm() {
                 if (loading) return;
                 setLoading(true); 
 
-                write2History(message)
+                write2History({ role: userRole, content: message });
                 const userMessage = message;
                 
                 setMessage("");
@@ -30,11 +32,11 @@ export default function ProblemInputForm() {
                     // Ask the backend tutor for a reply.
                     
                     const response = await OpeningQuestion(userMessage);
-                    write2History(response)
+                    write2History({ role: aiRole, content: response });
                     navigate('/workit');
                     
                 } catch{
-                    write2History("failed to get response")
+                    write2History({ role: aiRole, content: "Failed to get a response." });
                 }finally{
                 // Always reset the loading flag so the user can send another message.
                 setLoading(false);
@@ -50,7 +52,7 @@ export default function ProblemInputForm() {
 
         <form id="StartProblemTextForm" onSubmit={StartSolvingProcess} >
             {/* Text field where the user types their math question. */}
-            <TextField id="StartProblemTextInput" placeholder="Please enter math problem..."  value={message} onChange={(e) => {
+            <TextField id="StartProblemTextInput" multiline minRows={1} maxRows={4} placeholder="Please enter math problem..."  value={message} onChange={(e) => {
                 setMessage(e.target.value);
             }}/>
                             

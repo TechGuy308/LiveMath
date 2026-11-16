@@ -248,3 +248,62 @@ h2 {
   font-size: 0.875rem;
   line-height: 1.35;
 }
+
+.query > :first-child,
+.response > :first-child {
+  margin-top: 0;
+}
+
+.query > :last-child,
+.response > :last-child {
+  margin-bottom: 0;
+}
+
+.query p,
+.response p {
+  margin: 0.5em 0;
+}
+
+.query ul,
+.query ol,
+.response ul,
+.response ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.query pre,
+.response pre,
+.query table,
+.response table,
+.query .katex-display,
+.response .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.query pre,
+.response pre {
+  padding: 0.6em;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.query :not(pre) > code,
+.response :not(pre) > code {
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.response table {
+  border-collapse: collapse;
+}
+
+.response th,
+.response td {
+  padding: 0.25em 0.5em;
+  border: 1px solid currentColor;
+}

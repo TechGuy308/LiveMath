@@ -8,13 +8,13 @@ import { chatProvider } from '../ChatHistoryManager.jsx';
 
 
 export default function MathWhiteboard(){
-    const [image, setImage] = useState("");
-    const [AIOutput, setAIOutput] = useState("");
+    
     const [loading, setLoading] = useState(false);
     const { history, write2History } = useContext(chatProvider);
     
     function ImageButton() {
-        
+        const userRole = "user";
+        const aiRole = "ai";
         const editor = useEditor();
         
         
@@ -32,9 +32,9 @@ export default function MathWhiteboard(){
                             if (shapeIds.size === 0) return alert('No shapes on the canvas')
                             const { blob } = await editor.toImage([...shapeIds], { format: 'png', background: true });
                             const response = await Vision(blob);
-                            write2History(response);
+                            write2History({ role: aiRole, content: response });
                         }catch{
-                            write2History("Failed to process message");
+                            write2History({ role: aiRole, content: "Failed to process the submitted work." });
                         }finally{
                             setLoading(false);
                         }
