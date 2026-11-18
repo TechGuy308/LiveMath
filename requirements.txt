@@ -6,3 +6,4 @@ python-dotenv
 pydantic
 opencv-python-headless
 Pillow
+uvicorn
