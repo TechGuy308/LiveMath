@@ -8,7 +8,6 @@ import { chatProvider } from '../ChatHistoryManager.jsx';
 
 
 export default function MathWhiteboard(){
-    
     const [loading, setLoading] = useState(false);
     const { history, write2History } = useContext(chatProvider);
     
@@ -75,6 +74,10 @@ export default function MathWhiteboard(){
     };
 
     return <div style={{ position: 'fixed', inset:0}}>
-        <Tldraw overrides={overrides} components={{Toolbar:CustomToolbar}}/>
+        <Tldraw
+            licenseKey={import.meta.env.VITE_TLDRAW_LICENSE_KEY}
+            overrides={overrides}
+            components={{Toolbar:CustomToolbar}}
+        />
     </div>
 }
