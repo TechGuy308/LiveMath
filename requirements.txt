@@ -6,3 +6,6 @@ python-dotenv
 pydantic
 opencv-python-headless
 Pillow
+uvicorn
+fastapi
+python-multipart
