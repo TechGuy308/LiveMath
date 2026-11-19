@@ -1,6 +1,6 @@
 // Shared functions for communication between the React frontend and Python backend.
 
-const url = "http://localhost:8000";
+const url = "https://livemathbackend.onrender.com";
 
 // API functions for communicating with the Python backend
 async function AskTutor(userMessage){
